@@ -160,6 +160,25 @@ export const orderItemInsertSchema = createInsertSchema(orderItems, {
   price: (schema) => schema.refine(val => Number(val) > 0, "Price must be positive"),
 });
 
+// Notifications
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  type: text("type", { 
+    enum: ["new_order", "order_status_change", "payment_completed", "menu_item_update", "table_status_change"] 
+  }).notNull(),
+  message: text("message").notNull(),
+  details: jsonb("details").default({}).notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  isRead: boolean("is_read").default(false).notNull(),
+  targetRole: text("target_role", { enum: ["admin", "waiter", "cashier"] }),
+});
+
+export const notificationsRelations = relations(notifications, ({}) => ({}));
+
+export const notificationInsertSchema = createInsertSchema(notifications, {
+  message: (schema) => schema.min(1, "Message is required"),
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type UserInsert = z.infer<typeof userInsertSchema>;
@@ -178,3 +197,6 @@ export type OrderInsert = z.infer<typeof orderInsertSchema>;
 
 export type OrderItem = typeof orderItems.$inferSelect;
 export type OrderItemInsert = z.infer<typeof orderItemInsertSchema>;
+
+export type Notification = typeof notifications.$inferSelect;
+export type NotificationInsert = z.infer<typeof notificationInsertSchema>;

@@ -10,6 +10,7 @@ import * as menuController from "./controllers/menuController";
 import * as tableController from "./controllers/tableController";
 import * as orderController from "./controllers/orderController";
 import * as userController from "./controllers/userController";
+import * as notificationController from "./controllers/notificationController";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
@@ -105,6 +106,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(`${apiPrefix}/users`, authenticate, isAdmin, userController.createUser);
   app.put(`${apiPrefix}/users/:id`, authenticate, isAdmin, userController.updateUser);
   app.delete(`${apiPrefix}/users/:id`, authenticate, isAdmin, userController.deleteUser);
+  
+  // Notification routes
+  app.get(`${apiPrefix}/notifications`, authenticate, notificationController.getNotifications);
+  app.post(`${apiPrefix}/notifications/mark-read`, authenticate, notificationController.markAsRead);
   
   return httpServer;
 }
