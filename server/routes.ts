@@ -55,8 +55,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Original endpoints (commented out for now)
-  // app.get(`${apiPrefix}/auth/me`, authenticate, authController.getCurrentUser);
+  // Regular auth endpoints
+  app.get(`${apiPrefix}/auth/me`, authenticate, authController.getCurrentUser);
   app.post(`${apiPrefix}/auth/logout`, authenticate, authController.logout);
   
   // Menu routes

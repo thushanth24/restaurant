@@ -137,7 +137,7 @@ export const updateUser = async (req: Request, res: Response) => {
             username ? eq(users.username, username) : undefined,
             email ? eq(users.email, email) : undefined
           ),
-          eq(users.id, parseInt(id), 'not')
+          !eq(users.id, parseInt(id))
         ),
       });
       
