@@ -103,17 +103,21 @@ export default function MenuManagement() {
   }, [currentMenuItem, isEditDialogOpen, form]);
 
   // Fetch categories
-  const { data: categories = [] } = useQuery({
+  const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ['/api/categories'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/categories');
+      return response.json();
+    }
   });
 
   // Fetch menu items
   const { 
-    data: menuItems,
+    data: menuItems = [],
     isLoading,
     error,
     refetch
-  } = useQuery({
+  } = useQuery<MenuItem[]>({
     queryKey: ['/api/menu-items', searchTerm, selectedCategory],
     queryFn: async ({ queryKey }) => {
       let url = '/api/menu-items';
@@ -122,7 +126,7 @@ export default function MenuManagement() {
       
       const params = new URLSearchParams();
       if (search) params.append('search', search);
-      if (category) params.append('categoryId', category);
+      if (category && category !== 'all') params.append('categoryId', category);
       
       const queryString = params.toString();
       const fullUrl = queryString ? `${url}?${queryString}` : url;
@@ -250,7 +254,7 @@ export default function MenuManagement() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              {categories?.map((category: Category) => (
+              {categories.map((category: Category) => (
                 <SelectItem key={category.id} value={category.id.toString()}>
                   {category.name}
                 </SelectItem>

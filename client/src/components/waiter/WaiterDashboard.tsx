@@ -46,21 +46,10 @@ export default function WaiterDashboard() {
   // Update order status mutation
   const updateOrderStatus = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: number, status: string }) => {
-      const response = await fetch(`/api/orders/${orderId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          status,
-          serverId: user?.id
-        }),
+      const response = await apiRequest('PUT', `/api/orders/${orderId}/status`, {
+        status,
+        serverId: user?.id
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update order status');
-      }
       
       return response.json();
     },
