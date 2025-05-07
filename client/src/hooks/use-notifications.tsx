@@ -25,13 +25,13 @@ export function useNotifications({
   showToasts = true,
   pollingInterval = POLLING_INTERVAL,
   autoMarkAsRead = false,
-  role
+  roleFilter
 }: {
   playSound?: boolean;
   showToasts?: boolean;
   pollingInterval?: number;
   autoMarkAsRead?: boolean;
-  role?: 'admin' | 'waiter' | 'cashier';
+  roleFilter?: 'admin' | 'waiter' | 'cashier' | null;
 } = {}) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -42,7 +42,7 @@ export function useNotifications({
   const enabled = isAuthenticated && !!user;
   
   // Build query key based on user role - this helps filter notifications on the server
-  const queryKey = [`/api/notifications${role ? `?role=${role}` : ''}`];
+  const queryKey = [`/api/notifications${roleFilter ? `?role=${roleFilter}` : ''}`];
 
   // Query for polling notifications
   const {

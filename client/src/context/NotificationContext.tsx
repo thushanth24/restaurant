@@ -21,7 +21,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     isLoading,
     markAsRead,
   } = useNotifications({
-    role: user?.role,
+    roleFilter: user?.role || null,
     pollingInterval: 5000, // Poll every 5 seconds
     showToasts: true, // Show toast notifications for new items
     playSound: true, // Play sound for new notifications
