@@ -1,4 +1,4 @@
-import { Route, Switch, useLocation } from "wouter";
+import { Route, Switch } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -10,8 +10,8 @@ import WaiterPage from "@/pages/waiter";
 import CashierPage from "@/pages/cashier";
 import AdminPage from "@/pages/admin";
 import AuthPage from "@/pages/auth-page";
-import { useEffect, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useEffect } from "react";
+import { ProtectedRoute, RoleBasedRedirect } from "@/lib/protected-route";
 
 // Component to handle loading state
 function LoadingPage() {
@@ -22,33 +22,12 @@ function LoadingPage() {
   );
 }
 
-// Component to handle redirection based on auth state - simplified to avoid race conditions
-function HomeRedirect() {
-  const { isAuthenticated, isLoading, user } = useAuth();
-  const [, setLocation] = useLocation();
-  
-  // Using this approach to avoid potential race conditions in the auth flow
-  useEffect(() => {
-    if (isLoading) return;
-    
-    if (isAuthenticated && user) {
-      // Hard redirect for authenticated users
-      window.location.href = '/admin';
-    } else {
-      // Soft redirect for unauthenticated users
-      setLocation('/auth');
-    }
-  }, [isAuthenticated, isLoading, setLocation, user]);
-  
-  return <LoadingPage />;
-}
-
 // Main router component
 function Router() {
   return (
     <Switch>
-      {/* Home redirects based on auth status */}
-      <Route path="/" component={HomeRedirect} />
+      {/* Home redirects based on auth status and role */}
+      <Route path="/" component={RoleBasedRedirect} />
       
       {/* Auth page */}
       <Route path="/auth" component={AuthPage} />
@@ -56,10 +35,22 @@ function Router() {
       {/* Customer facing page */}
       <Route path="/table/:id" component={CustomerPage} />
       
-      {/* Admin/Staff facing pages */}
-      <Route path="/waiter" component={WaiterPage} />
-      <Route path="/cashier" component={CashierPage} />
-      <Route path="/admin" component={AdminPage} />
+      {/* Admin/Staff facing pages with role protection */}
+      <ProtectedRoute 
+        path="/admin" 
+        component={AdminPage} 
+        allowedRoles={['admin']} 
+      />
+      <ProtectedRoute 
+        path="/waiter" 
+        component={WaiterPage}
+        allowedRoles={['waiter', 'admin']}
+      />
+      <ProtectedRoute 
+        path="/cashier" 
+        component={CashierPage}
+        allowedRoles={['cashier', 'admin']}
+      />
 
       {/* Fallback to 404 */}
       <Route component={NotFound} />

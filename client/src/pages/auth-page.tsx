@@ -40,22 +40,39 @@ export default function AuthPage() {
   // Prevent redirect loop with a state variable
   const [redirectAttempted, setRedirectAttempted] = useState(false);
   
+  const { user } = useAuth();
+
   useEffect(() => {
     // Only attempt redirect once
     if (redirectAttempted) return;
     
-    console.log('Auth page - Auth state:', { isAuthenticated, isLoading });
+    console.log('Auth page - Auth state:', { isAuthenticated, isLoading, user });
     
     if (!isLoading) {
       setRedirectAttempted(true);
       
-      if (isAuthenticated) {
-        console.log('Auth page - Redirecting authenticated user to admin dashboard');
+      if (isAuthenticated && user) {
+        console.log('Auth page - Redirecting authenticated user based on role:', user.role);
+        
+        // Redirect based on role
+        let redirectPath = '/';
+        switch(user.role) {
+          case 'admin':
+            redirectPath = '/admin';
+            break;
+          case 'waiter':
+            redirectPath = '/waiter';
+            break;
+          case 'cashier':
+            redirectPath = '/cashier';
+            break;
+        }
+        
         // Use window.location for a clean redirect with full page refresh
-        window.location.href = '/admin';
+        window.location.href = redirectPath;
       }
     }
-  }, [isAuthenticated, isLoading, redirectAttempted]);
+  }, [isAuthenticated, isLoading, redirectAttempted, user]);
 
   // Login form
   const loginForm = useForm<LoginFormValues>({
@@ -82,10 +99,29 @@ export default function AuthPage() {
     const success = await login(values.username, values.password);
     
     if (success) {
-      // Use direct window location navigation to admin page for a clean state
+      // Short delay to ensure state is updated before redirection
       setTimeout(() => {
-        window.location.href = '/admin';
-      }, 500); // Short delay to ensure state is updated
+        // Get the user info from context 
+        const currentUser = user;
+        if (!currentUser) return;
+        
+        // Redirect based on role
+        let redirectPath = '/';
+        switch(currentUser.role) {
+          case 'admin':
+            redirectPath = '/admin';
+            break;
+          case 'waiter':
+            redirectPath = '/waiter';
+            break;
+          case 'cashier':
+            redirectPath = '/cashier';
+            break;
+        }
+        
+        // Use direct window location navigation for a clean state
+        window.location.href = redirectPath;
+      }, 500);
     }
   };
 

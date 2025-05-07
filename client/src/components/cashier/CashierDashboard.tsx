@@ -36,8 +36,17 @@ export default function CashierDashboard() {
     queryKey: ['/api/orders', activeTab],
     queryFn: async ({ queryKey }) => {
       const statusFilter = getStatusForTab(queryKey[1] as string);
-      const response = await fetch(`/api/orders?status=${statusFilter.orderStatus}`);
-      if (!response.ok) throw new Error('Failed to fetch orders');
+      const response = await fetch(`/api/orders?status=${statusFilter.orderStatus}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Unauthorized - please login again');
+        }
+        throw new Error('Failed to fetch orders');
+      }
       const allOrders = await response.json();
       return allOrders.filter((order: any) => order.paymentStatus === statusFilter.paymentStatus);
     },
@@ -56,6 +65,7 @@ export default function CashierDashboard() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({
           paymentMethod,
@@ -64,6 +74,9 @@ export default function CashierDashboard() {
       });
       
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Unauthorized - please login again');
+        }
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to process payment');
       }
