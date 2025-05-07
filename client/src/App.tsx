@@ -24,18 +24,24 @@ function LoadingPage() {
 
 // Component to handle redirection based on auth state
 function HomeRedirect() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const [, setLocation] = useLocation();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const [location, setLocation] = useLocation();
   
   useEffect(() => {
-    if (!isLoading) {
-      if (isAuthenticated) {
+    // Only redirect if we're on the root path to prevent redirect loops
+    if (location === '/' && !isLoading) {
+      console.log('HomeRedirect - Current path:', location);
+      console.log('HomeRedirect - Auth state:', { isAuthenticated, isLoading });
+      
+      if (isAuthenticated && user) {
+        console.log('HomeRedirect - Redirecting to admin dashboard');
         setLocation('/admin');
       } else {
+        console.log('HomeRedirect - Redirecting to auth page');
         setLocation('/auth');
       }
     }
-  }, [isAuthenticated, isLoading, setLocation]);
+  }, [isAuthenticated, isLoading, location, setLocation, user]);
   
   return <LoadingPage />;
 }

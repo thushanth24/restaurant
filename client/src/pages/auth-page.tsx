@@ -37,12 +37,20 @@ export default function AuthPage() {
   const [, navigate] = useLocation();
   const { login, isAuthenticated, isLoading } = useAuth();
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated - but use a referrer check to prevent loops
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/admin');
+    console.log('Auth page - Auth state:', { isAuthenticated, isLoading });
+    
+    // Only redirect if actually authenticated and not in the middle of loading
+    if (isAuthenticated && !isLoading) {
+      const currentPath = window.location.pathname;
+      
+      if (currentPath === '/auth') {
+        console.log('Auth page - Redirecting authenticated user to admin dashboard');
+        navigate('/admin');
+      }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isLoading, navigate]);
 
   // Login form
   const loginForm = useForm<LoginFormValues>({
