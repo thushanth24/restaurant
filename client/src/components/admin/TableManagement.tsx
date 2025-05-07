@@ -76,12 +76,14 @@ export default function TableManagement() {
 
   // Fetch tables
   const { 
-    data: tables,
+    data: tables = [] as Table[],
     isLoading,
     error,
     refetch
-  } = useQuery({
+  } = useQuery<Table[]>({
     queryKey: ['/api/tables'],
+    retry: false,
+    staleTime: 30000,
   });
 
   // Create table mutation
@@ -246,12 +248,12 @@ export default function TableManagement() {
           <div className="col-span-full text-center py-4 text-red-500">
             Error loading tables. Please try again.
           </div>
-        ) : tables?.length === 0 ? (
+        ) : tables.length === 0 ? (
           <div className="col-span-full text-center py-10 text-neutral-500">
             No tables found. Add a table to get started.
           </div>
         ) : (
-          tables?.map((table: Table) => (
+          tables.map((table: Table) => (
             <div 
               key={table.id} 
               className="bg-white border border-neutral-200 rounded-lg p-4 hover:shadow-md transition-shadow"

@@ -244,12 +244,12 @@ export default function StaffManagement() {
                   Error loading staff members. Please try again.
                 </td>
               </tr>
-            ) : users?.length === 0 ? (
+            ) : users.length === 0 ? (
               <tr>
                 <td colSpan={5} className="text-center py-4">No staff members found</td>
               </tr>
             ) : (
-              users?.map((user: User) => (
+              users.map((user: User) => (
                 <tr key={user.id} className="hover:bg-neutral-50">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
