@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import { QRCodeGenerator } from '@/components/ui/qr-code';
 import { Plus, Edit, Trash2, RefreshCw, Eye } from 'lucide-react';
 import { 
@@ -86,19 +87,7 @@ export default function TableManagement() {
   // Create table mutation
   const createTable = useMutation({
     mutationFn: async (data: TableFormValues) => {
-      const response = await fetch('/api/tables', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create table');
-      }
-      
+      const response = await apiRequest('POST', '/api/tables', data);
       return response.json();
     },
     onSuccess: () => {
@@ -121,19 +110,7 @@ export default function TableManagement() {
   // Update table mutation
   const updateTable = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: TableFormValues }) => {
-      const response = await fetch(`/api/tables/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update table');
-      }
-      
+      const response = await apiRequest('PUT', `/api/tables/${id}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -156,15 +133,7 @@ export default function TableManagement() {
   // Delete table mutation
   const deleteTable = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`/api/tables/${id}`, {
-        method: 'DELETE',
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete table');
-      }
-      
+      const response = await apiRequest('DELETE', `/api/tables/${id}`);
       return response.json();
     },
     onSuccess: () => {
@@ -187,15 +156,7 @@ export default function TableManagement() {
   // Regenerate QR code mutation
   const regenerateQR = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`/api/tables/${id}/regenerate-qr`, {
-        method: 'POST',
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to regenerate QR code');
-      }
-      
+      const response = await apiRequest('POST', `/api/tables/${id}/regenerate-qr`);
       return response.json();
     },
     onSuccess: (data) => {
