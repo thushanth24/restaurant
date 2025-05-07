@@ -38,7 +38,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     return delay + Math.random() * 1000; // Add jitter
   }, []);
 
-  // Create WebSocket connection
+  // Create WebSocket connection with improved error handling
   const connect = useCallback(() => {
     try {
       // Clear any existing timeouts
@@ -48,127 +48,182 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
       }
       
       // Close existing socket if any
-      if (currentSocketRef.current && currentSocketRef.current.readyState !== WebSocket.CLOSED) {
+      if (currentSocketRef.current) {
         try {
-          currentSocketRef.current.close();
+          if (currentSocketRef.current.readyState !== WebSocket.CLOSED) {
+            currentSocketRef.current.close();
+          }
         } catch (e) {
-          console.error('Error closing existing socket:', e);
+          console.warn('Warning when closing socket:', e);
+          // Continue anyway
         }
+      }
+      
+      // Only try to connect if window and navigator are available and online
+      if (typeof window === 'undefined' || 
+          typeof navigator === 'undefined' || 
+          (navigator.onLine === false)) {
+        console.log('Browser offline or context unavailable, delaying connection...');
+        
+        // Schedule a reconnection attempt
+        const delay = getReconnectDelay();
+        reconnectTimeoutRef.current = window.setTimeout(() => {
+          connect();
+        }, delay);
+        
+        return null;
       }
       
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const wsUrl = `${protocol}//${window.location.host}/ws`;
       
       console.log('Initializing WebSocket connection to:', wsUrl);
-      console.log('Reconnection attempt:', reconnectAttemptsRef.current + 1);
       
-      const newSocket = new WebSocket(wsUrl);
-      currentSocketRef.current = newSocket;
+      let newSocket: WebSocket | null = null;
       
-      // Connection opened
-      newSocket.addEventListener('open', () => {
-        console.log('WebSocket connection established');
-        setIsConnected(true);
-        setSocket(newSocket);
-        reconnectAttemptsRef.current = 0; // Reset reconnect attempts on successful connection
+      try {
+        newSocket = new WebSocket(wsUrl);
+        currentSocketRef.current = newSocket;
+      } catch (connError) {
+        console.error('Failed to initialize WebSocket:', connError);
         
-        // Authenticate if user is logged in
-        if (isAuthenticated && user && newSocket.readyState === WebSocket.OPEN) {
-          try {
-            newSocket.send(JSON.stringify({
-              type: 'authenticate',
-              payload: {
-                userId: user.id,
-                role: user.role
-              }
-            }));
-            console.log('Authentication message sent to server');
-          } catch (error) {
-            console.error('Failed to send authentication message:', error);
-          }
-        }
-      });
-      
-      // Listen for messages
-      newSocket.addEventListener('message', (event: MessageEvent) => {
-        try {
-          const data = JSON.parse(event.data);
-          setLastMessage(data);
-          
-          // Handle different message types
-          switch (data.type) {
-            case WebSocketMessageType.NEW_ORDER:
-              console.log('New order received:', data.payload);
-              break;
-            case WebSocketMessageType.ORDER_STATUS_CHANGE:
-              console.log('Order status changed:', data.payload);
-              break;
-            case WebSocketMessageType.ORDER_READY_FOR_PAYMENT:
-              console.log('Order ready for payment:', data.payload);
-              break;
-            case WebSocketMessageType.PAYMENT_COMPLETED:
-              console.log('Payment completed:', data.payload);
-              break;
-            case WebSocketMessageType.MENU_ITEM_AVAILABILITY_CHANGE:
-              console.log('Menu item availability changed:', data.payload);
-              break;
-            case WebSocketMessageType.TABLE_STATUS_CHANGE:
-              console.log('Table status changed:', data.payload);
-              break;
-            default:
-              console.log('Received server message:', data);
-          }
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
-        }
-      });
-      
-      // Connection closed
-      newSocket.addEventListener('close', (event) => {
-        console.log('WebSocket connection closed. Code:', event.code, 'Reason:', event.reason);
-        setIsConnected(false);
-        
-        // Don't try to reconnect if this was a normal closure
-        if (event.code === 1000) {
-          console.log('WebSocket closed normally, not reconnecting');
-          return;
-        }
-        
-        // Try to reconnect with exponential backoff
+        // Schedule a retry
         if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
           const delay = getReconnectDelay();
-          console.log(`Reconnecting in ${delay}ms...`);
-          
           reconnectAttemptsRef.current += 1;
-          reconnectTimeoutRef.current = window.setTimeout(() => {
-            connect();
-          }, delay);
-        } else {
-          console.error('Maximum reconnection attempts reached. Giving up.');
+          reconnectTimeoutRef.current = window.setTimeout(connect, delay);
         }
-      });
+        
+        return null;
+      }
       
-      // Connection error
-      newSocket.addEventListener('error', (error) => {
-        console.error('WebSocket error:', error);
-        // Let the close handler handle reconnection
-      });
+      console.log('WebSocket instance created, configuring event handlers...');
+      
+      // Set up event handlers inside a try block to handle any errors
+      try {
+        // Connection opened handler
+        newSocket.onopen = () => {
+          console.log('WebSocket connection established');
+          setIsConnected(true);
+          setSocket(newSocket);
+          reconnectAttemptsRef.current = 0; // Reset reconnect attempts
+          
+          // Only try to authenticate if we have user data and socket is open
+          if (isAuthenticated && user && newSocket?.readyState === WebSocket.OPEN) {
+            try {
+              const authMessage = JSON.stringify({
+                type: 'authenticate',
+                payload: {
+                  userId: user.id,
+                  role: user.role
+                }
+              });
+              
+              newSocket.send(authMessage);
+              console.log('Authentication message sent to server');
+            } catch (authError) {
+              console.warn('Failed to send auth message:', authError);
+              // Continue anyway, not critical
+            }
+          }
+        };
+        
+        // Message handler
+        newSocket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            setLastMessage(data);
+            
+            // Handle different message types with careful error handling
+            switch (data.type) {
+              case WebSocketMessageType.NEW_ORDER:
+                console.log('New order received:', data.payload);
+                break;
+              case WebSocketMessageType.ORDER_STATUS_CHANGE:
+                console.log('Order status changed:', data.payload);
+                break;
+              case WebSocketMessageType.ORDER_READY_FOR_PAYMENT:
+                console.log('Order ready for payment:', data.payload);
+                break;
+              case WebSocketMessageType.PAYMENT_COMPLETED:
+                console.log('Payment completed:', data.payload);
+                break;
+              case WebSocketMessageType.MENU_ITEM_AVAILABILITY_CHANGE:
+                console.log('Menu item availability changed:', data.payload);
+                break;
+              case WebSocketMessageType.TABLE_STATUS_CHANGE:
+                console.log('Table status changed:', data.payload);
+                break;
+              default:
+                console.log('Received message:', data);
+            }
+          } catch (parseError) {
+            console.warn('Error parsing WebSocket message:', parseError);
+            // Continue anyway, just one bad message
+          }
+        };
+        
+        // Connection closed handler
+        newSocket.onclose = (event) => {
+          console.log('WebSocket connection closed. Code:', event.code, 'Reason:', event.reason);
+          setIsConnected(false);
+          
+          // Normal closure, don't reconnect
+          if (event.code === 1000) {
+            console.log('WebSocket closed normally, not reconnecting');
+            return;
+          }
+          
+          // Schedule reconnection with backoff
+          if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
+            const delay = getReconnectDelay();
+            console.log(`Reconnecting in ${delay}ms...`);
+            
+            reconnectAttemptsRef.current += 1;
+            reconnectTimeoutRef.current = window.setTimeout(connect, delay);
+          } else {
+            console.log('Maximum reconnection attempts reached. Will not retry automatically.');
+          }
+        };
+        
+        // Error handler
+        newSocket.onerror = (event) => {
+          // Just log the error, the close handler will deal with reconnection
+          console.warn('WebSocket error event:', event);
+        };
+        
+      } catch (setupError) {
+        console.error('Error setting up WebSocket event handlers:', setupError);
+        
+        // Try to close the socket if we failed to set it up properly
+        try {
+          if (newSocket && newSocket.readyState !== WebSocket.CLOSED) {
+            newSocket.close();
+          }
+        } catch (closeError) {
+          console.warn('Error closing failed socket:', closeError);
+        }
+        
+        // Schedule a retry
+        if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
+          const delay = getReconnectDelay();
+          reconnectAttemptsRef.current += 1;
+          reconnectTimeoutRef.current = window.setTimeout(connect, delay);
+        }
+        
+        return null;
+      }
       
       return newSocket;
     } catch (error) {
-      console.error('Error establishing WebSocket connection:', error);
+      // Fallback error handler for any other unexpected errors
+      console.error('Unexpected error in WebSocket connection setup:', error);
       
-      // Schedule reconnection even if connection setup fails
+      // Always try to reconnect if something went wrong
       if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
         const delay = getReconnectDelay();
-        console.log(`Error connecting. Retrying in ${delay}ms...`);
-        
         reconnectAttemptsRef.current += 1;
-        reconnectTimeoutRef.current = window.setTimeout(() => {
-          connect();
-        }, delay);
-      } else {
-        console.error('Maximum reconnection attempts reached. Giving up.');
+        reconnectTimeoutRef.current = window.setTimeout(connect, delay);
       }
       
       return null;

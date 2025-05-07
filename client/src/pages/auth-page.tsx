@@ -81,7 +81,14 @@ export default function AuthPage() {
   });
 
   const onLoginSubmit = async (values: LoginFormValues) => {
-    await login(values.username, values.password);
+    const success = await login(values.username, values.password);
+    
+    if (success) {
+      // Use direct window location navigation to admin page for a clean state
+      setTimeout(() => {
+        window.location.href = '/admin';
+      }, 500); // Short delay to ensure state is updated
+    }
   };
 
   const onRegisterSubmit = async (values: RegisterFormValues) => {
