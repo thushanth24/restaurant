@@ -1,0 +1,355 @@
+@import 'variables';
+@import 'mixins';
+
+// Base button styles
+.btn {
+  @include button-base;
+  
+  // Button sizes
+  &-sm {
+    padding: $spacing-1 $spacing-2;
+    font-size: 0.875rem;
+    border-radius: $border-radius-sm;
+  }
+  
+  &-lg {
+    padding: $spacing-3 $spacing-4;
+    font-size: 1.125rem;
+    border-radius: $border-radius-lg;
+  }
+  
+  // Button variants
+  &-primary {
+    @include button-variant(
+      $color-primary,
+      $color-primary,
+      $color-primary-dark,
+      $color-primary-dark,
+      darken($color-primary, 15%),
+      darken($color-primary, 15%)
+    );
+    color: white;
+    
+    &:hover, &:focus {
+      color: white;
+    }
+  }
+  
+  &-secondary {
+    @include button-variant(
+      $color-secondary,
+      $color-secondary,
+      $color-secondary-dark,
+      $color-secondary-dark,
+      darken($color-secondary, 15%),
+      darken($color-secondary, 15%)
+    );
+    color: white;
+    
+    &:hover, &:focus {
+      color: white;
+    }
+  }
+  
+  &-accent {
+    @include button-variant(
+      $color-accent,
+      $color-accent,
+      $color-accent-dark,
+      $color-accent-dark,
+      darken($color-accent, 15%),
+      darken($color-accent, 15%)
+    );
+    color: white;
+    
+    &:hover, &:focus {
+      color: white;
+    }
+  }
+  
+  &-danger {
+    @include button-variant(
+      $color-danger,
+      $color-danger,
+      darken($color-danger, 10%),
+      darken($color-danger, 10%),
+      darken($color-danger, 15%),
+      darken($color-danger, 15%)
+    );
+    color: white;
+    
+    &:hover, &:focus {
+      color: white;
+    }
+  }
+  
+  &-warning {
+    @include button-variant(
+      $color-warning,
+      $color-warning,
+      darken($color-warning, 10%),
+      darken($color-warning, 10%),
+      darken($color-warning, 15%),
+      darken($color-warning, 15%)
+    );
+    color: $color-neutral-800;
+    
+    &:hover, &:focus {
+      color: $color-neutral-800;
+    }
+  }
+  
+  &-light {
+    @include button-variant(
+      $color-neutral-100,
+      $color-neutral-200,
+      $color-neutral-200,
+      $color-neutral-300,
+      $color-neutral-300,
+      $color-neutral-400
+    );
+    color: $color-neutral-800;
+    
+    &:hover, &:focus {
+      color: $color-neutral-800;
+    }
+  }
+  
+  &-dark {
+    @include button-variant(
+      $color-neutral-800,
+      $color-neutral-800,
+      $color-neutral-700,
+      $color-neutral-700,
+      $color-neutral-900,
+      $color-neutral-900
+    );
+    color: white;
+    
+    &:hover, &:focus {
+      color: white;
+    }
+  }
+  
+  // Outline buttons
+  &-outline-primary {
+    @include button-variant(
+      transparent,
+      $color-primary,
+      rgba($color-primary, 0.1),
+      $color-primary,
+      rgba($color-primary, 0.2),
+      $color-primary
+    );
+    color: $color-primary;
+  }
+  
+  &-outline-secondary {
+    @include button-variant(
+      transparent,
+      $color-secondary,
+      rgba($color-secondary, 0.1),
+      $color-secondary,
+      rgba($color-secondary, 0.2),
+      $color-secondary
+    );
+    color: $color-secondary;
+  }
+  
+  &-outline-accent {
+    @include button-variant(
+      transparent,
+      $color-accent,
+      rgba($color-accent, 0.1),
+      $color-accent,
+      rgba($color-accent, 0.2),
+      $color-accent
+    );
+    color: $color-accent;
+  }
+  
+  &-outline-danger {
+    @include button-variant(
+      transparent,
+      $color-danger,
+      rgba($color-danger, 0.1),
+      $color-danger,
+      rgba($color-danger, 0.2),
+      $color-danger
+    );
+    color: $color-danger;
+  }
+  
+  &-outline-warning {
+    @include button-variant(
+      transparent,
+      $color-warning,
+      rgba($color-warning, 0.1),
+      $color-warning,
+      rgba($color-warning, 0.2),
+      $color-warning
+    );
+    color: darken($color-warning, 15%);
+  }
+  
+  &-outline-light {
+    @include button-variant(
+      transparent,
+      $color-neutral-300,
+      $color-neutral-100,
+      $color-neutral-400,
+      $color-neutral-200,
+      $color-neutral-500
+    );
+    color: $color-neutral-700;
+  }
+  
+  &-outline-dark {
+    @include button-variant(
+      transparent,
+      $color-neutral-800,
+      rgba($color-neutral-800, 0.1),
+      $color-neutral-800,
+      rgba($color-neutral-800, 0.2),
+      $color-neutral-800
+    );
+    color: $color-neutral-800;
+  }
+  
+  // Link button
+  &-link {
+    font-weight: $font-weight-normal;
+    color: $color-primary;
+    background-color: transparent;
+    border: none;
+    
+    &:hover, &:focus {
+      color: darken($color-primary, 15%);
+      text-decoration: underline;
+      background-color: transparent;
+      border-color: transparent;
+    }
+    
+    &:disabled, &.disabled {
+      color: $color-neutral-400;
+      pointer-events: none;
+    }
+  }
+  
+  // Block buttons
+  &-block {
+    display: block;
+    width: 100%;
+  }
+  
+  // Icon buttons
+  &-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    
+    &.btn-sm {
+      width: 2rem;
+      height: 2rem;
+    }
+    
+    &.btn-lg {
+      width: 3rem;
+      height: 3rem;
+    }
+  }
+  
+  // Button with icon
+  .icon {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 0.5rem;
+    
+    &-right {
+      margin-right: 0;
+      margin-left: 0.5rem;
+    }
+  }
+  
+  // Button Group
+  &-group {
+    position: relative;
+    display: inline-flex;
+    vertical-align: middle;
+    
+    .btn {
+      position: relative;
+      flex: 1 1 auto;
+      
+      &:not(:first-child) {
+        margin-left: -1px;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+      }
+      
+      &:not(:last-child) {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+      
+      &:hover, &:focus, &:active, &.active {
+        z-index: 1;
+      }
+    }
+  }
+  
+  // Button Toolbar
+  &-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    
+    .btn-group {
+      margin-right: $spacing-2;
+      
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+}
+
+// Make buttons inline-block by default
+button, [type="button"], [type="reset"], [type="submit"] {
+  -webkit-appearance: button;
+}
+
+// Remove button focus outlines in Firefox
+::-moz-focus-inner {
+  padding: 0;
+  border-style: none;
+}
+
+// Spinner button state for loading
+.btn-spinner {
+  position: relative;
+  pointer-events: none;
+  
+  &::after {
+    content: "";
+    position: absolute;
+    width: 1rem;
+    height: 1rem;
+    top: 50%;
+    left: 50%;
+    margin-left: -0.5rem;
+    margin-top: -0.5rem;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

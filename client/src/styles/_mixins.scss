@@ -1,0 +1,187 @@
+@import 'variables';
+
+// Media query mixins
+@mixin media-breakpoint-up($breakpoint) {
+  @if $breakpoint == sm {
+    @media (min-width: $breakpoint-sm) { @content; }
+  } @else if $breakpoint == md {
+    @media (min-width: $breakpoint-md) { @content; }
+  } @else if $breakpoint == lg {
+    @media (min-width: $breakpoint-lg) { @content; }
+  } @else if $breakpoint == xl {
+    @media (min-width: $breakpoint-xl) { @content; }
+  }
+}
+
+@mixin media-breakpoint-down($breakpoint) {
+  @if $breakpoint == xs {
+    @media (max-width: $breakpoint-sm - 1) { @content; }
+  } @else if $breakpoint == sm {
+    @media (max-width: $breakpoint-md - 1) { @content; }
+  } @else if $breakpoint == md {
+    @media (max-width: $breakpoint-lg - 1) { @content; }
+  } @else if $breakpoint == lg {
+    @media (max-width: $breakpoint-xl - 1) { @content; }
+  }
+}
+
+// Flexbox mixins
+@mixin flex($direction: row, $justify: flex-start, $align: stretch, $wrap: nowrap) {
+  display: flex;
+  flex-direction: $direction;
+  justify-content: $justify;
+  align-items: $align;
+  flex-wrap: $wrap;
+}
+
+@mixin center-flex {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+// Typography mixins
+@mixin heading-1 {
+  font-size: 2rem;
+  font-weight: $font-weight-bold;
+  line-height: 1.2;
+  
+  @include media-breakpoint-up(md) {
+    font-size: 2.5rem;
+  }
+}
+
+@mixin heading-2 {
+  font-size: 1.75rem;
+  font-weight: $font-weight-bold;
+  line-height: 1.2;
+  
+  @include media-breakpoint-up(md) {
+    font-size: 2rem;
+  }
+}
+
+@mixin heading-3 {
+  font-size: 1.5rem;
+  font-weight: $font-weight-semibold;
+  line-height: 1.2;
+}
+
+@mixin heading-4 {
+  font-size: 1.25rem;
+  font-weight: $font-weight-semibold;
+  line-height: 1.2;
+}
+
+// Text truncation
+@mixin text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin line-clamp($lines) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: $lines;
+  overflow: hidden;
+}
+
+// Shadows
+@mixin box-shadow($level: 1) {
+  @if $level == 1 {
+    box-shadow: $shadow-sm;
+  } @else if $level == 2 {
+    box-shadow: $shadow;
+  } @else if $level == 3 {
+    box-shadow: $shadow-lg;
+  }
+}
+
+// Transitions
+@mixin transition($property: all, $duration: 0.2s, $easing: ease-in-out) {
+  transition: $property $duration $easing;
+}
+
+// Button styles
+@mixin button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: $font-weight-medium;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid transparent;
+  padding: $spacing-2 $spacing-3;
+  border-radius: $border-radius;
+  @include transition;
+  
+  &:focus {
+    outline: none;
+  }
+  
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+@mixin button-variant($background, $border, $hover-background, $hover-border, $active-background, $active-border) {
+  background-color: $background;
+  border-color: $border;
+  
+  &:hover {
+    background-color: $hover-background;
+    border-color: $hover-border;
+  }
+  
+  &:active {
+    background-color: $active-background;
+    border-color: $active-border;
+  }
+}
+
+// Card mixins
+@mixin card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  word-wrap: break-word;
+  background-color: #fff;
+  background-clip: border-box;
+  border: 1px solid $color-neutral-200;
+  border-radius: $border-radius;
+  @include box-shadow(1);
+}
+
+// Borders
+@mixin border-radius($radius: $border-radius) {
+  border-radius: $radius;
+}
+
+// Animation mixins
+@mixin keyframes($name) {
+  @keyframes #{$name} {
+    @content;
+  }
+}
+
+@mixin animation($name, $duration: 1s, $timing-function: ease, $delay: 0s, $iteration-count: 1, $direction: normal, $fill-mode: forwards) {
+  animation-name: $name;
+  animation-duration: $duration;
+  animation-timing-function: $timing-function;
+  animation-delay: $delay;
+  animation-iteration-count: $iteration-count;
+  animation-direction: $direction;
+  animation-fill-mode: $fill-mode;
+}
+
+// Grid helpers
+@mixin grid($columns: 1, $gap: $spacing-3) {
+  display: grid;
+  grid-template-columns: repeat($columns, 1fr);
+  gap: $gap;
+}

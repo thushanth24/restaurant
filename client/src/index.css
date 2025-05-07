@@ -1,0 +1,240 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary: 16 100% 60%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 206 100% 27%;
+    --secondary-foreground: 0 0% 100%;
+    
+    --accent: 114 45% 49%;
+    --accent-foreground: 0 0% 100%;
+    
+    --warning: 43 100% 51%;
+    --warning-foreground: 0 0% 20%;
+    
+    --danger: 354 70% 54%;
+    --danger-foreground: 0 0% 100%;
+    
+    --background: 0 0% 98%;
+    --foreground: 0 0% 13%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 13%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 13%;
+    
+    --border: 0 0% 89%;
+    --input: 0 0% 89%;
+    
+    --muted: 0 0% 97%;
+    --muted-foreground: 0 0% 45%;
+    
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 13%;
+    --sidebar-primary: 16 100% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 206 100% 27%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 89%;
+    --sidebar-ring: 16 100% 60%;
+    
+    --chart-1: 16 100% 60%;
+    --chart-2: 206 100% 27%;
+    --chart-3: 114 45% 49%;
+    --chart-4: 43 100% 51%;
+    --chart-5: 354 70% 54%;
+    
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+  
+  /* Custom SCSS styling */
+  .notification-dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: hsl(var(--danger));
+  }
+  
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+  
+  .notification-pulse {
+    animation: pulse 1.5s infinite;
+  }
+  
+  .tab-content {
+    display: none;
+  }
+  
+  .tab-content.active {
+    display: block;
+  }
+  
+  /* Role-based tab navigation */
+  .role-tab {
+    @apply px-4 py-3 text-sm font-medium border-b-2 border-transparent hover:text-primary;
+  }
+  
+  .role-tab.active {
+    @apply border-primary text-primary;
+  }
+  
+  /* Table status tabs */
+  .status-tab {
+    @apply inline-block py-2 px-4 text-neutral-500 hover:text-neutral-700 font-medium;
+  }
+  
+  .status-tab.active {
+    @apply text-primary border-b-2 border-primary;
+  }
+  
+  /* Form elements */
+  .form-input,
+  .form-select {
+    @apply rounded border-neutral-300 focus:ring-primary focus:border-primary;
+  }
+  
+  /* Cards */
+  .card {
+    @apply bg-white rounded-lg shadow-md;
+  }
+  
+  .card-header {
+    @apply p-4 border-b border-neutral-200;
+  }
+  
+  .card-body {
+    @apply p-4;
+  }
+  
+  /* Buttons */
+  .btn {
+    @apply px-4 py-2 rounded font-medium;
+  }
+  
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary/90;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-white hover:bg-secondary/90;
+  }
+  
+  .btn-accent {
+    @apply bg-accent text-white hover:bg-accent/90;
+  }
+  
+  .btn-outline {
+    @apply border border-neutral-300 text-neutral-700 hover:bg-neutral-100;
+  }
+  
+  /* Status badges */
+  .badge {
+    @apply px-2 py-0.5 rounded-full text-xs;
+  }
+  
+  .badge-primary {
+    @apply bg-primary text-white;
+  }
+  
+  .badge-accent {
+    @apply bg-accent text-white;
+  }
+  
+  .badge-warning {
+    @apply bg-warning text-neutral-800;
+  }
+  
+  .badge-danger {
+    @apply bg-red-100 text-red-800;
+  }
+  
+  .badge-success {
+    @apply bg-green-100 text-green-800;
+  }
+  
+  /* Tables */
+  .table-container {
+    @apply overflow-x-auto;
+  }
+  
+  .table {
+    @apply min-w-full bg-white;
+  }
+  
+  .table thead {
+    @apply bg-neutral-50 border-b border-neutral-200;
+  }
+  
+  .table th {
+    @apply py-3 px-4 text-left text-sm font-medium text-neutral-600;
+  }
+  
+  .table tbody {
+    @apply divide-y divide-neutral-200;
+  }
+  
+  .table tr {
+    @apply hover:bg-neutral-50;
+  }
+  
+  .table td {
+    @apply py-3 px-4;
+  }
+  
+  /* Pagination */
+  .pagination {
+    @apply flex gap-1;
+  }
+  
+  .pagination-item {
+    @apply px-3 py-1 rounded border border-neutral-300 text-neutral-700 hover:bg-neutral-100;
+  }
+  
+  .pagination-item.active {
+    @apply bg-primary text-white;
+  }
+  
+  .pagination-item:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+  
+  /* Menu item card */
+  .menu-item {
+    @apply bg-white rounded-lg border border-neutral-200 mb-3 p-3;
+  }
+  
+  /* Order card */
+  .order-card {
+    @apply bg-white border border-neutral-200 rounded-lg shadow-sm hover:shadow-md transition-shadow;
+  }
+  
+  .order-card-header {
+    @apply p-4 border-b border-neutral-200 bg-neutral-50;
+  }
+  
+  .order-card-body {
+    @apply p-4;
+  }
+}
