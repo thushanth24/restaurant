@@ -70,24 +70,21 @@ export const markAsRead = async (req: Request, res: Response) => {
 
 // Create a new notification
 export const createNotification = async (
-  type: string,
+  type: "new_order" | "order_status_change" | "payment_completed" | "menu_item_update" | "table_status_change",
   message: string,
   details: Record<string, any> = {},
-  targetRole?: string
+  targetRole?: "admin" | "waiter" | "cashier" | null
 ) => {
   try {
-    const notificationData = {
-      type,
+    // Create the notification directly with proper typing
+    const [notification] = await db.insert(notifications).values({
+      type, // Now properly typed
       message,
-      details: JSON.stringify(details),
+      details, // Details already typed as jsonb in schema
       timestamp: new Date(),
       isRead: false,
       targetRole: targetRole || null
-    };
-    
-    const [notification] = await db.insert(notifications)
-      .values(notificationData)
-      .returning();
+    }).returning();
 
     return notification;
   } catch (error) {
@@ -119,19 +116,33 @@ export const createTestNotification = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Type and message are required' });
     }
 
-    // Create the notification
-    const notification = await createNotification(
-      type,
+    // Validate notification type
+    const validTypes = ['new_order', 'order_status_change', 'payment_completed', 'menu_item_update', 'table_status_change'];
+    if (!validTypes.includes(type)) {
+      return res.status(400).json({ error: 'Invalid notification type' });
+    }
+
+    // Validate target role if provided
+    if (targetRole && !['admin', 'waiter', 'cashier'].includes(targetRole)) {
+      return res.status(400).json({ error: 'Invalid target role' });
+    }
+
+    // Create the notification with proper type casting
+    const notification = await db.insert(notifications).values({
+      // Use type assertion for the enum types
+      type: type as any,
       message,
       details,
-      targetRole
-    );
+      timestamp: new Date(),
+      isRead: false,
+      targetRole: targetRole as any || null
+    }).returning();
 
-    if (!notification) {
+    if (!notification || notification.length === 0) {
       return res.status(500).json({ error: 'Failed to create notification' });
     }
 
-    return res.status(201).json(notification);
+    return res.status(201).json(notification[0]);
   } catch (error) {
     console.error('Error creating test notification:', error);
     return res.status(500).json({ error: 'Internal server error' });

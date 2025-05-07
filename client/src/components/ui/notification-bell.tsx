@@ -15,10 +15,7 @@ import { timeAgo } from "@/lib/utils";
 import { playNotificationSound } from "@/lib/utils";
 
 export function NotificationBell() {
-  const { notifications, unreadCount, markAsRead } = useNotifications({
-    roleFilter: null, // Get all notifications for this user's role
-    pollingInterval: 5000, // Poll every 5 seconds
-  });
+  const { notifications, unreadCount, markAsRead } = useNotifications();
 
   const [isOpen, setIsOpen] = useState(false);
   const [lastNotificationCount, setLastNotificationCount] = useState(0);
