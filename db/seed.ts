@@ -1,5 +1,5 @@
 import { db } from "./index";
-import { users, tables, categories, menuItems, orders, orderItems } from "@shared/schema";
+import { users, tables, categories, menuItems, orders, orderItems, notifications } from "@shared/schema";
 import { createId } from '@paralleldrive/cuid2';
 import { hashSync } from 'bcryptjs';
 import QRCode from 'qrcode';
@@ -199,6 +199,51 @@ async function seed() {
       console.log("Menu items seeded successfully.");
     } else {
       console.log(`Found ${existingMenuItems.length} existing menu items. Skipping menu item seeding.`);
+    }
+
+    // Check if notifications already exist
+    const existingNotifications = await db.query.notifications.findMany();
+    
+    if (existingNotifications.length === 0) {
+      console.log("Seeding notifications...");
+      
+      await db.insert(notifications).values([
+        {
+          type: 'menu_item_update',
+          message: 'New seasonal menu items have been added',
+          details: JSON.stringify({ count: 3, category: 'Main Course' }),
+          timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+          isRead: false,
+          targetRole: 'admin'
+        },
+        {
+          type: 'table_status_change',
+          message: 'Table 5 needs cleanup',
+          details: JSON.stringify({ tableId: 5, previousStatus: 'occupied', newStatus: 'needs_cleaning' }),
+          timestamp: new Date(Date.now() - 1000 * 60 * 15), // 15 minutes ago
+          isRead: false,
+          targetRole: 'waiter'
+        },
+        {
+          type: 'new_order',
+          message: 'New order received for Table 3',
+          details: JSON.stringify({ orderId: 1, tableNumber: 3, items: 4 }),
+          timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
+          isRead: false,
+          targetRole: 'waiter'
+        },
+        {
+          type: 'payment_completed',
+          message: 'Payment received for Table 7',
+          details: JSON.stringify({ orderId: 2, tableNumber: 7, amount: '$65.30' }),
+          timestamp: new Date(Date.now() - 1000 * 60 * 2), // 2 minutes ago
+          isRead: false,
+          targetRole: 'cashier'
+        }
+      ]);
+      console.log("Notifications seeded successfully.");
+    } else {
+      console.log(`Found ${existingNotifications.length} existing notifications. Skipping notification seeding.`);
     }
 
     console.log("Database seeding completed successfully!");
