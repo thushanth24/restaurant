@@ -102,7 +102,7 @@ export default function MenuManagement() {
   }, [currentMenuItem, isEditDialogOpen, form]);
 
   // Fetch categories
-  const { data: categories } = useQuery({
+  const { data: categories = [] } = useQuery({
     queryKey: ['/api/categories'],
   });
 
