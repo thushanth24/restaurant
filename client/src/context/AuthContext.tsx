@@ -34,22 +34,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async (): Promise<boolean> => {
     const token = localStorage.getItem('token');
+    console.log('Checking auth with token:', token ? 'Token exists' : 'No token');
     
     if (!token) {
+      console.log('No token found, returning unauthenticated');
       setIsLoading(false);
       return false;
     }
 
     try {
       setIsLoading(true);
+      console.log('Fetching user data from /api/auth/me');
       const response = await apiRequest('GET', '/api/auth/me');
       const data = await response.json();
+      console.log('Auth check response:', data);
       
       if (data.user) {
+        console.log('User authenticated successfully:', data.user);
         setUser(data.user);
         setIsLoading(false);
         return true;
       } else {
+        console.log('Invalid token - no user returned');
         // Token is invalid
         localStorage.removeItem('token');
         setUser(null);
