@@ -9,7 +9,9 @@ import CustomerPage from "@/pages/customer";
 import WaiterPage from "@/pages/waiter";
 import CashierPage from "@/pages/cashier";
 import AdminPage from "@/pages/admin";
+import AuthPage from "@/pages/auth-page";
 import { useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 function Router() {
   return (
@@ -21,12 +23,30 @@ function Router() {
       <Route path="/waiter" component={WaiterPage} />
       <Route path="/cashier" component={CashierPage} />
       <Route path="/admin" component={AdminPage} />
+      <Route path="/auth" component={AuthPage} />
       
       {/* Main page - redirect to admin page */}
       <Route path="/">
         {() => {
-          window.location.href = "/admin";
-          return null;
+          const { isAuthenticated, isLoading } = useAuth();
+          
+          useEffect(() => {
+            if (!isLoading) {
+              if (isAuthenticated) {
+                // Redirect to appropriate dashboard based on user role
+                window.location.replace('/admin');
+              } else {
+                // Redirect to login page (will need to create this)
+                window.location.replace('/auth');
+              }
+            }
+          }, [isAuthenticated, isLoading]);
+          
+          return (
+            <div className="flex items-center justify-center min-h-screen">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+            </div>
+          );
         }}
       </Route>
 
