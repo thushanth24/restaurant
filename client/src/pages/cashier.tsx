@@ -11,12 +11,18 @@ export default function CashierPage() {
   const [, navigate] = useLocation();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  // Check authentication status
+  // Check authentication status once
+  const [redirectAttempted, setRedirectAttempted] = useState(false);
+  
   useEffect(() => {
+    // Only run once to prevent infinite redirects
+    if (redirectAttempted) return;
+    
     const verifyAuth = async () => {
       setIsCheckingAuth(true);
       const isAuthed = await checkAuth();
       setIsCheckingAuth(false);
+      setRedirectAttempted(true);
       
       // Redirect admin to admin page
       if (isAuthed && user?.role === 'admin') {
@@ -25,7 +31,7 @@ export default function CashierPage() {
     };
     
     verifyAuth();
-  }, [checkAuth, navigate, user]);
+  }, [checkAuth, navigate, user, redirectAttempted]);
 
   // Set document title
   useEffect(() => {
