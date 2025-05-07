@@ -5,6 +5,19 @@ import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
+// Add font to ensure PDF works
+import { jsPDF as JsPDFType } from 'jspdf';
+
+// Extend jsPDF with autotable
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+    lastAutoTable: {
+      finalY: number;
+    };
+  }
+}
+
 interface OrderItem {
   menuItem: {
     name: string;
@@ -53,12 +66,13 @@ export function ReceiptGenerator({
     try {
       setIsGenerating(true);
       
-      // Create new PDF document
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a5',
-      });
+      // Create a simple HTML receipt instead of using jsPDF
+      // This approach is more reliable across browsers
+      const printWindow = window.open('', '_blank');
+      
+      if (!printWindow) {
+        throw new Error('Could not open print window. Please check your popup settings.');
+      }
       
       // Calculate tax if not provided
       const subtotal = parseFloat(order.totalAmount);
@@ -72,72 +86,172 @@ export function ReceiptGenerator({
       const completionDate = order.completedAt 
         ? new Date(order.completedAt).toLocaleString() 
         : 'N/A';
+        
+      // Create HTML content for receipt
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Receipt - Order #${order.id}</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 20px;
+              max-width: 400px;
+              margin: 0 auto;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 20px;
+            }
+            .restaurant-name {
+              font-size: 22px;
+              font-weight: bold;
+              margin-bottom: 5px;
+            }
+            .restaurant-details {
+              font-size: 12px;
+              margin-bottom: 3px;
+            }
+            .receipt-title {
+              font-size: 16px;
+              font-weight: bold;
+              text-align: center;
+              margin: 15px 0;
+              border-bottom: 1px solid #ccc;
+              padding-bottom: 5px;
+            }
+            .order-info {
+              margin-bottom: 15px;
+              font-size: 12px;
+            }
+            .order-info div {
+              margin-bottom: 5px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+            th {
+              background-color: #f0f0f0;
+              text-align: left;
+              padding: 8px;
+              font-size: 12px;
+              border-bottom: 1px solid #ddd;
+            }
+            td {
+              padding: 8px;
+              font-size: 12px;
+              border-bottom: 1px solid #eee;
+            }
+            .totals {
+              margin-top: 15px;
+              text-align: right;
+              font-size: 12px;
+            }
+            .total-row {
+              margin-top: 5px;
+            }
+            .grand-total {
+              font-weight: bold;
+              font-size: 14px;
+              margin-top: 10px;
+            }
+            .footer {
+              margin-top: 30px;
+              text-align: center;
+              font-size: 14px;
+              font-style: italic;
+            }
+            .special-instructions {
+              margin-top: 15px;
+              font-size: 12px;
+              font-style: italic;
+            }
+            @media print {
+              body {
+                padding: 0;
+                margin: 0;
+              }
+              .no-print {
+                display: none;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="restaurant-name">${restaurantName}</div>
+            <div class="restaurant-details">${restaurantAddress}</div>
+            <div class="restaurant-details">${restaurantPhone}</div>
+          </div>
+          
+          <div class="receipt-title">RECEIPT</div>
+          
+          <div class="order-info">
+            <div><strong>Order #:</strong> ${order.id}</div>
+            <div><strong>Table:</strong> ${order.tableNumber}</div>
+            <div><strong>Date:</strong> ${orderDate}</div>
+            <div><strong>Payment:</strong> ${order.paymentMethod || 'N/A'}</div>
+          </div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${order.orderItems.map(item => `
+                <tr>
+                  <td>${item.menuItem.name}</td>
+                  <td>${item.quantity}</td>
+                  <td>${formatCurrency(item.menuItem.price)}</td>
+                  <td>${formatCurrency(parseFloat(item.menuItem.price) * item.quantity)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          
+          <div class="totals">
+            <div class="total-row"><strong>Subtotal:</strong> ${formatCurrency(subtotal)}</div>
+            <div class="total-row"><strong>Tax (${taxPercentage}%):</strong> ${formatCurrency(taxAmount)}</div>
+            <div class="grand-total"><strong>TOTAL:</strong> ${formatCurrency(total)}</div>
+          </div>
+          
+          ${order.specialInstructions ? `
+            <div class="special-instructions">
+              <strong>Special Instructions:</strong><br>
+              ${order.specialInstructions}
+            </div>
+          ` : ''}
+          
+          <div class="footer">
+            Thank you for dining with us!
+          </div>
+          
+          <div class="no-print" style="margin-top: 30px; text-align: center;">
+            <button onclick="window.print()" style="padding: 10px 20px; background: #4a90e2; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              Print Receipt
+            </button>
+            <button onclick="window.close()" style="padding: 10px 20px; margin-left: 10px; background: #ccc; border: none; border-radius: 4px; cursor: pointer;">
+              Close
+            </button>
+          </div>
+        </body>
+        </html>
+      `;
       
-      // Add restaurant info
-      doc.setFontSize(18);
-      doc.text(restaurantName, 105, 15, { align: 'center' });
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
       
-      doc.setFontSize(10);
-      doc.text(restaurantAddress, 105, 22, { align: 'center' });
-      doc.text(restaurantPhone, 105, 27, { align: 'center' });
-      
-      // Add order info
-      doc.setFontSize(12);
-      doc.text('RECEIPT', 105, 35, { align: 'center' });
-      
-      doc.setFontSize(10);
-      doc.text(`Order #: ${order.id}`, 15, 45);
-      doc.text(`Table: ${order.tableNumber}`, 15, 50);
-      doc.text(`Date: ${orderDate}`, 15, 55);
-      doc.text(`Payment: ${order.paymentMethod || 'N/A'}`, 15, 60);
-      
-      // Add items table
-      const tableColumn = ['Item', 'Qty', 'Price', 'Total'];
-      const tableRows = order.orderItems.map(item => [
-        item.menuItem.name,
-        item.quantity,
-        formatCurrency(item.menuItem.price),
-        formatCurrency(parseFloat(item.menuItem.price) * item.quantity)
-      ]);
-      
-      (doc as any).autoTable({
-        head: [tableColumn],
-        body: tableRows,
-        startY: 70,
-        theme: 'grid',
-        styles: { fontSize: 9 },
-        headStyles: { fillColor: [255, 107, 53] },
-        margin: { top: 70, right: 15, bottom: 20, left: 15 },
-      });
-      
-      // Add totals
-      const finalY = (doc as any).lastAutoTable.finalY + 10;
-      
-      doc.text('Subtotal:', 105, finalY, { align: 'right' });
-      doc.text(formatCurrency(subtotal), 130, finalY, { align: 'right' });
-      
-      doc.text(`Tax (${taxPercentage}%):`, 105, finalY + 5, { align: 'right' });
-      doc.text(formatCurrency(taxAmount), 130, finalY + 5, { align: 'right' });
-      
-      doc.setFont(undefined, 'bold');
-      doc.text('TOTAL:', 105, finalY + 12, { align: 'right' });
-      doc.text(formatCurrency(total), 130, finalY + 12, { align: 'right' });
-      doc.setFont(undefined, 'normal');
-      
-      // Add special instructions if any
-      if (order.specialInstructions) {
-        doc.text('Special Instructions:', 15, finalY + 20);
-        doc.text(order.specialInstructions, 15, finalY + 25);
-      }
-      
-      // Add thank you message
-      doc.setFontSize(11);
-      doc.text('Thank you for dining with us!', 105, finalY + 35, { align: 'center' });
-      
-      // Save PDF
-      doc.save(`receipt-order-${order.id}.pdf`);
     } catch (error) {
       console.error('Error generating receipt:', error);
+      alert('Failed to generate receipt. Please try again or contact support.');
     } finally {
       setIsGenerating(false);
     }
