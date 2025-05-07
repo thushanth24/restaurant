@@ -127,8 +127,7 @@ export default function MenuManagement() {
       const queryString = params.toString();
       const fullUrl = queryString ? `${url}?${queryString}` : url;
       
-      const response = await fetch(fullUrl);
-      if (!response.ok) throw new Error('Failed to fetch menu items');
+      const response = await apiRequest('GET', fullUrl);
       return response.json();
     },
   });

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import { User } from '@shared/schema';
 import { UserRole } from 'server/middleware/roleMiddleware';
 import { Plus, Edit, Trash2, UserCog } from 'lucide-react';
@@ -90,19 +91,7 @@ export default function StaffManagement() {
   // Create user mutation
   const createUser = useMutation({
     mutationFn: async (data: UserFormValues) => {
-      const response = await fetch('/api/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create user');
-      }
-      
+      const response = await apiRequest('POST', '/api/users', data);
       return response.json();
     },
     onSuccess: () => {
@@ -125,19 +114,7 @@ export default function StaffManagement() {
   // Update user mutation
   const updateUser = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: UserFormValues }) => {
-      const response = await fetch(`/api/users/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update user');
-      }
-      
+      const response = await apiRequest('PUT', `/api/users/${id}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -160,15 +137,7 @@ export default function StaffManagement() {
   // Delete user mutation
   const deleteUser = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`/api/users/${id}`, {
-        method: 'DELETE',
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete user');
-      }
-      
+      const response = await apiRequest('DELETE', `/api/users/${id}`);
       return response.json();
     },
     onSuccess: () => {
