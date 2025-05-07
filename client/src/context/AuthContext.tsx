@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
@@ -16,7 +16,6 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
-  checkAuth: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,51 +25,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { toast } = useToast();
   const [, navigate] = useLocation();
-
-  // Check for existing token and validate on mount
+  const authCheckPerformed = useRef(false);
+  
+  // Check auth only once on initial mount
   useEffect(() => {
+    // Prevent multiple auth checks
+    if (authCheckPerformed.current) return;
+    
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        console.log('AuthProvider: No token found');
+        setIsLoading(false);
+        authCheckPerformed.current = true;
+        return;
+      }
+      
+      try {
+        console.log('AuthProvider: Checking authentication status...');
+        const response = await apiRequest('GET', '/api/auth/debug-me');
+        const data = await response.json();
+        
+        if (data.user) {
+          console.log('AuthProvider: Authentication successful');
+          setUser(data.user);
+        } else {
+          console.log('AuthProvider: Invalid auth data returned');
+          localStorage.removeItem('token');
+        }
+      } catch (error) {
+        console.error('AuthProvider: Authentication check error', error);
+        localStorage.removeItem('token');
+      } finally {
+        setIsLoading(false);
+        authCheckPerformed.current = true;
+      }
+    };
+    
     checkAuth();
   }, []);
-
-  const checkAuth = async (): Promise<boolean> => {
-    const token = localStorage.getItem('token');
-    console.log('Checking auth with token:', token ? 'Token exists' : 'No token');
-    
-    if (!token) {
-      console.log('No token found, returning unauthenticated');
-      setIsLoading(false);
-      return false;
-    }
-
-    try {
-      setIsLoading(true);
-      console.log('Fetching user data from /api/auth/debug-me');
-      const response = await apiRequest('GET', '/api/auth/debug-me');
-      const data = await response.json();
-      console.log('Auth check response:', data);
-      
-      if (data.user) {
-        console.log('User authenticated successfully:', data.user);
-        setUser(data.user);
-        setIsLoading(false);
-        return true;
-      } else {
-        console.log('Invalid token - no user returned');
-        // Token is invalid
-        localStorage.removeItem('token');
-        setUser(null);
-        setIsLoading(false);
-        return false;
-      }
-    } catch (error) {
-      console.error('Error checking authentication:', error);
-      localStorage.removeItem('token');
-      setUser(null);
-      setIsLoading(false);
-      return false;
-    }
-  };
-
+  
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
@@ -105,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     }
   };
-
+  
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
@@ -115,9 +110,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       description: 'You have been successfully logged out',
     });
     
-    navigate('/');
+    // Use window.location instead of wouter navigation to ensure a clean state
+    window.location.href = '/auth';
   };
-
+  
   return (
     <AuthContext.Provider
       value={{
@@ -125,8 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         isAuthenticated: !!user,
         login,
-        logout,
-        checkAuth,
+        logout
       }}
     >
       {children}

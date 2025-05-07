@@ -10,7 +10,7 @@ import WaiterPage from "@/pages/waiter";
 import CashierPage from "@/pages/cashier";
 import AdminPage from "@/pages/admin";
 import AuthPage from "@/pages/auth-page";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 // Component to handle loading state
@@ -25,23 +25,25 @@ function LoadingPage() {
 // Component to handle redirection based on auth state
 function HomeRedirect() {
   const { isAuthenticated, isLoading, user } = useAuth();
-  const [location, setLocation] = useLocation();
+  const [redirected, setRedirected] = useState(false);
+  const [, setLocation] = useLocation();
   
   useEffect(() => {
-    // Only redirect if we're on the root path to prevent redirect loops
-    if (location === '/' && !isLoading) {
-      console.log('HomeRedirect - Current path:', location);
-      console.log('HomeRedirect - Auth state:', { isAuthenticated, isLoading });
+    // Only perform the redirect once
+    if (redirected) return;
+    
+    if (!isLoading) {
+      setRedirected(true);
       
       if (isAuthenticated && user) {
-        console.log('HomeRedirect - Redirecting to admin dashboard');
+        console.log('HomeRedirect: User authenticated, redirecting to admin dashboard');
         setLocation('/admin');
       } else {
-        console.log('HomeRedirect - Redirecting to auth page');
+        console.log('HomeRedirect: User not authenticated, redirecting to auth page');
         setLocation('/auth');
       }
     }
-  }, [isAuthenticated, isLoading, location, setLocation, user]);
+  }, [isAuthenticated, isLoading, redirected, setLocation, user]);
   
   return <LoadingPage />;
 }
