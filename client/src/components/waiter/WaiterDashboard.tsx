@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
 import { useWebSocket } from '@/context/WebSocketContext';
 import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import OrderCard from './OrderCard';
 import UserAvatar from '@/components/layout/UserAvatar';
 import NotificationBell from '@/components/layout/NotificationBell';
@@ -37,8 +38,7 @@ export default function WaiterDashboard() {
     queryKey: ['/api/orders', activeTab],
     queryFn: async ({ queryKey }) => {
       const status = getStatusForTab(queryKey[1] as string);
-      const response = await fetch(`/api/orders?status=${status}`);
-      if (!response.ok) throw new Error('Failed to fetch orders');
+      const response = await apiRequest('GET', `/api/orders?status=${status}`);
       return response.json();
     },
   });
