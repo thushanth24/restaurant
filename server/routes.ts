@@ -110,6 +110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Notification routes
   app.get(`${apiPrefix}/notifications`, authenticate, notificationController.getNotifications);
   app.post(`${apiPrefix}/notifications/mark-read`, authenticate, notificationController.markAsRead);
+  app.post(`${apiPrefix}/notifications/test`, authenticate, isAdmin, notificationController.createTestNotification);
   
   return httpServer;
 }

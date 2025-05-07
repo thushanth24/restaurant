@@ -23,6 +23,8 @@ export default function AdminDashboard() {
         return <StaffManagement />;
       case 'reports':
         return <Reports />;
+      case 'notifications':
+        return <NotificationTester />;
       default:
         return <MenuManagement />;
     }
@@ -71,6 +73,14 @@ export default function AdminDashboard() {
                     onClick={() => setActiveTab('reports')}
                   >
                     Reports
+                  </button>
+                </li>
+                <li className="mr-1">
+                  <button 
+                    className={`status-tab ${activeTab === 'notifications' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('notifications')}
+                  >
+                    Notification Tester
                   </button>
                 </li>
               </ul>

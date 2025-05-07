@@ -76,20 +76,64 @@ export const createNotification = async (
   targetRole?: string
 ) => {
   try {
+    const notificationData = {
+      type,
+      message,
+      details: JSON.stringify(details),
+      timestamp: new Date(),
+      isRead: false,
+      targetRole: targetRole || null
+    };
+    
     const [notification] = await db.insert(notifications)
-      .values({
-        type,
-        message,
-        details: JSON.stringify(details),
-        timestamp: new Date(),
-        isRead: false,
-        targetRole: targetRole || null
-      })
+      .values(notificationData)
       .returning();
 
     return notification;
   } catch (error) {
     console.error('Error creating notification:', error);
     return null;
+  }
+};
+
+// Create a test notification via API endpoint
+export const createTestNotification = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Get the user to check if they are admin
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId)
+    });
+
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ error: 'Only admins can create test notifications' });
+    }
+
+    const { type, message, targetRole, details = {} } = req.body;
+
+    if (!type || !message) {
+      return res.status(400).json({ error: 'Type and message are required' });
+    }
+
+    // Create the notification
+    const notification = await createNotification(
+      type,
+      message,
+      details,
+      targetRole
+    );
+
+    if (!notification) {
+      return res.status(500).json({ error: 'Failed to create notification' });
+    }
+
+    return res.status(201).json(notification);
+  } catch (error) {
+    console.error('Error creating test notification:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };

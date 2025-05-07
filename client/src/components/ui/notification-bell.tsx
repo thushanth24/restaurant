@@ -1,122 +1,127 @@
-import { useNotificationContext } from '@/context/NotificationContext';
-import { Button } from '@/components/ui/button';
-import { Bell } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { BellIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { formatDate } from '@/lib/utils';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useEffect, useState } from 'react';
+} from "@/components/ui/popover";
+import {
+  ScrollArea,
+  ScrollBar
+} from "@/components/ui/scroll-area";
+import { useNotifications, type Notification } from "@/hooks/use-notifications";
+import { timeAgo } from "@/lib/utils";
+import { playNotificationSound } from "@/lib/utils";
 
 export function NotificationBell() {
-  const { notifications, unreadCount, markAsRead } = useNotificationContext();
-  const [open, setOpen] = useState(false);
-  
-  // Mark all as read when popover is closed
+  const { notifications, unreadCount, markAsRead } = useNotifications({
+    roleFilter: null, // Get all notifications for this user's role
+    pollingInterval: 5000, // Poll every 5 seconds
+  });
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [lastNotificationCount, setLastNotificationCount] = useState(0);
+
+  // Play sound when new notifications arrive
   useEffect(() => {
-    if (!open && unreadCount > 0) {
-      const unreadIds = notifications
-        .filter(notification => !notification.isRead)
-        .map(notification => notification.id);
-      
-      markAsRead(unreadIds);
+    if (unreadCount > lastNotificationCount && lastNotificationCount > 0) {
+      playNotificationSound();
     }
-  }, [open, unreadCount, notifications, markAsRead]);
+    setLastNotificationCount(unreadCount);
+  }, [unreadCount, lastNotificationCount]);
+
+  // Mark all as read when opening the popover
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    
+    if (open && unreadCount > 0) {
+      const unreadIds = notifications
+        .filter((n: Notification) => !n.isRead)
+        .map((n: Notification) => n.id);
+      
+      if (unreadIds.length > 0) {
+        markAsRead(unreadIds);
+      }
+    }
+  };
+
+  const getNotificationIcon = (type: string) => {
+    return <BellIcon size={16} />;
+  };
+
+  const getNotificationColorClass = (type: string) => {
+    switch (type) {
+      case 'new_order':
+        return 'bg-blue-50 border-blue-100';
+      case 'order_status_change':
+        return 'bg-purple-50 border-purple-100';
+      case 'payment_completed':
+        return 'bg-green-50 border-green-100';
+      case 'menu_item_update':
+        return 'bg-amber-50 border-amber-100';
+      case 'table_status_change':
+        return 'bg-gray-50 border-gray-100';
+      default:
+        return 'bg-gray-50 border-gray-100';
+    }
+  };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={isOpen} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="relative"
+        >
+          <BellIcon className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
-        <div className="border-b border-border px-4 py-2">
-          <h4 className="text-sm font-medium">Notifications</h4>
+      <PopoverContent align="end" className="w-80 p-0">
+        <div className="p-4 border-b">
+          <h3 className="font-semibold">Notifications</h3>
+          <p className="text-sm text-muted-foreground">
+            {notifications.length 
+              ? `You have ${notifications.length} notification${notifications.length !== 1 ? 's' : ''}`
+              : 'No notifications yet'}
+          </p>
         </div>
-        <ScrollArea className="h-[300px]">
-          {notifications.length > 0 ? (
-            <div className="divide-y divide-border">
-              {notifications.map((notification) => (
-                <div 
-                  key={notification.id} 
-                  className={`p-4 ${notification.isRead ? '' : 'bg-muted/50'}`}
+        {notifications.length > 0 ? (
+          <ScrollArea className="h-[300px]">
+            <div className="grid gap-1 p-2">
+              {notifications.map((notification: Notification) => (
+                <div
+                  key={notification.id}
+                  className={`flex items-start gap-3 rounded-md border p-3 text-sm ${
+                    notification.isRead ? 'opacity-60' : 'font-medium'
+                  } ${getNotificationColorClass(notification.type)}`}
                 >
-                  <div className="mb-1 flex items-center justify-between">
-                    <h5 className="text-sm font-medium">
-                      {getNotificationTitle(notification.type)}
-                    </h5>
-                    <span className="text-xs text-muted-foreground">
-                      {formatRelativeTime(notification.timestamp)}
-                    </span>
+                  <div className="mt-1 text-foreground">
+                    {getNotificationIcon(notification.type)}
                   </div>
-                  <p className="text-sm text-muted-foreground">{notification.message}</p>
+                  <div className="grid gap-1">
+                    <p>{notification.message}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {timeAgo(notification.timestamp)}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="flex h-full items-center justify-center p-4">
-              <p className="text-center text-sm text-muted-foreground">
-                No notifications yet
-              </p>
-            </div>
-          )}
-        </ScrollArea>
+            <ScrollBar />
+          </ScrollArea>
+        ) : (
+          <div className="p-8 text-center text-muted-foreground">
+            You're all caught up!
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   );
-}
-
-// Helper function to get a user-friendly title based on notification type
-function getNotificationTitle(type: string): string {
-  switch (type) {
-    case 'new_order':
-      return 'New Order';
-    case 'order_status_change':
-      return 'Order Status';
-    case 'payment_completed':
-      return 'Payment';
-    case 'menu_item_update':
-      return 'Menu Item';
-    case 'table_status_change':
-      return 'Table Status';
-    default:
-      return 'Notification';
-  }
-}
-
-// Helper function to format timestamp as relative time (e.g., "5m ago")
-function formatRelativeTime(timestamp: string): string {
-  const date = new Date(timestamp);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffSeconds = Math.floor(diffMs / 1000);
-  
-  if (diffSeconds < 60) {
-    return 'just now';
-  }
-  
-  const diffMinutes = Math.floor(diffSeconds / 60);
-  if (diffMinutes < 60) {
-    return `${diffMinutes}m ago`;
-  }
-  
-  const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) {
-    return `${diffHours}h ago`;
-  }
-  
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) {
-    return `${diffDays}d ago`;
-  }
-  
-  return formatDate(date);
 }
