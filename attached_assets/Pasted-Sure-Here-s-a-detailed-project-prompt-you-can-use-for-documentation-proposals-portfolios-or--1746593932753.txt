@@ -1,0 +1,75 @@
+Sure! Here's a detailed **project prompt** you can use for documentation, proposals, portfolios, or team collaboration:
+
+---
+
+### 📌 **Project Prompt: QR-Based Restaurant Ordering and Billing System (with Admin Workflow)**
+
+#### 🔍 **Overview**
+
+This project is a full-stack restaurant management system built using **Next.js** for both frontend and backend, enabling digital menu access, order placement, and billing through unique **QR codes per table**. It streamlines the dining experience for customers and optimizes operational workflows for restaurant staff through role-based interfaces and real-time communication.
+
+---
+
+#### 👤 **User Roles & Interfaces**
+
+1. **Customer (Guest)**
+
+   * Scans a QR code unique to their table.
+   * Accesses a dynamic, language-friendly digital menu.
+   * Adds items to cart and places an order without logging in (guest session).
+   * Leaves feedback after payment.
+
+2. **Waiter (Admin Interface)**
+
+   * Receives real-time notifications of new orders.
+   * Approves and manages orders per table.
+   * Updates table statuses (e.g., “Order Placed”, “Served”, “Billed”).
+   * Finalizes bills after service completion.
+
+3. **Cashier (Admin Interface)**
+
+   * Sees finalized bills ready for payment.
+   * Receives alerts for incoming payments.
+   * Marks orders as paid and can generate/download a **PDF receipt**.
+
+4. **Manager/Admin**
+
+   * Accesses a centralized dashboard.
+   * Manages menu items, availability, and time-based menus.
+   * Manages users, roles, and permissions using **Role-Based Access Control (RBAC)**.
+   * Reviews customer feedback and sales analytics.
+
+---
+
+#### 🧩 **Key Features**
+
+* **QR Code Table Identification** – Each table has a unique QR linking to a guest-facing order page.
+* **Guest Checkout** – No login required for customers; uses a temporary session tied to the table.
+* **Menu Availability & Timing** – Items can be shown/hidden based on time of day or stock status.
+* **Table Status Tracking** – Orders and tables are tracked through stages (waiting, served, billed).
+* **Admin Dashboard** – Role-specific views for waiters, cashiers, and managers.
+* **Push Notifications** – Real-time updates via sound/desktop alerts for order changes and billing.
+* **PDF Bill Generation** – Cashier can generate and print a structured receipt.
+* **Customer Feedback** – Lightweight post-payment review for quality tracking.
+* **RBAC System** – Fine-grained access control for waiter, cashier, manager roles.
+
+---
+
+#### ⚙️ **Tech Stack**
+
+* **Framework**: Next.js (with API routes)
+* **Database**: PostgreSQL with Prisma ORM (or MongoDB with Mongoose)
+* **Authentication**: NextAuth.js or custom JWT
+* **QR Code Generation**: `qrcode` npm package
+* **Real-time**: Socket.IO or Pusher for notifications
+* **PDF Generation**: `pdf-lib` or `jspdf`
+* **Role Management**: Middleware or ACL-based routing
+* **State Management**: React Context API or Zustand
+
+---
+
+This system enhances dining efficiency, minimizes service delays, and enables a data-driven workflow for restaurant operations.
+
+---
+
+Would you like a shorter version of this for a portfolio or GitHub README?
