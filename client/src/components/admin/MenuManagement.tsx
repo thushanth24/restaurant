@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import { Search, Plus, Edit, Trash2 } from 'lucide-react';
 import { 
   Dialog,
@@ -135,19 +136,7 @@ export default function MenuManagement() {
   // Create menu item mutation
   const createMenuItem = useMutation({
     mutationFn: async (data: MenuItemFormValues) => {
-      const response = await fetch('/api/menu-items', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create menu item');
-      }
-      
+      const response = await apiRequest('POST', '/api/menu-items', data);
       return response.json();
     },
     onSuccess: () => {
@@ -170,19 +159,7 @@ export default function MenuManagement() {
   // Update menu item mutation
   const updateMenuItem = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: MenuItemFormValues }) => {
-      const response = await fetch(`/api/menu-items/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update menu item');
-      }
-      
+      const response = await apiRequest('PUT', `/api/menu-items/${id}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -205,15 +182,7 @@ export default function MenuManagement() {
   // Delete menu item mutation
   const deleteMenuItem = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`/api/menu-items/${id}`, {
-        method: 'DELETE',
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete menu item');
-      }
-      
+      const response = await apiRequest('DELETE', `/api/menu-items/${id}`);
       return response.json();
     },
     onSuccess: () => {

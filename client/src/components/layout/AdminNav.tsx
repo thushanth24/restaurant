@@ -15,20 +15,20 @@ export default function AdminNav() {
           <h1 className="text-xl font-bold">QR Restaurant</h1>
           {!isMobile && (
             <div className="ml-6 flex gap-4">
-              <Link href="/admin">
-                <a className="text-sm font-medium hover:text-primary">Dashboard</a>
+              <Link href="/admin" className="text-sm font-medium hover:text-primary">
+                Dashboard
               </Link>
-              <Link href="/admin/menu">
-                <a className="text-sm font-medium hover:text-primary">Menu</a>
+              <Link href="/admin/menu" className="text-sm font-medium hover:text-primary">
+                Menu
               </Link>
-              <Link href="/admin/tables">
-                <a className="text-sm font-medium hover:text-primary">Tables</a>
+              <Link href="/admin/tables" className="text-sm font-medium hover:text-primary">
+                Tables
               </Link>
-              <Link href="/admin/orders">
-                <a className="text-sm font-medium hover:text-primary">Orders</a>
+              <Link href="/admin/orders" className="text-sm font-medium hover:text-primary">
+                Orders
               </Link>
-              <Link href="/admin/reports">
-                <a className="text-sm font-medium hover:text-primary">Reports</a>
+              <Link href="/admin/reports" className="text-sm font-medium hover:text-primary">
+                Reports
               </Link>
             </div>
           )}
