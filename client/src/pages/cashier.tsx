@@ -7,39 +7,26 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CashierPage() {
-  const { user, isAuthenticated, isLoading, checkAuth } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [, navigate] = useLocation();
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-
-  // Check authentication status once
-  const [redirectAttempted, setRedirectAttempted] = useState(false);
+  const [attemptedRedirect, setAttemptedRedirect] = useState(false);
   
-  useEffect(() => {
-    // Only run once to prevent infinite redirects
-    if (redirectAttempted) return;
-    
-    const verifyAuth = async () => {
-      setIsCheckingAuth(true);
-      const isAuthed = await checkAuth();
-      setIsCheckingAuth(false);
-      setRedirectAttempted(true);
-      
-      // Redirect admin to admin page
-      if (isAuthed && user?.role === 'admin') {
-        navigate('/admin');
-      }
-    };
-    
-    verifyAuth();
-  }, [checkAuth, navigate, user, redirectAttempted]);
-
   // Set document title
   useEffect(() => {
     document.title = 'Cashier Dashboard';
   }, []);
 
-  // Show loading state while checking auth
-  if (isLoading || isCheckingAuth) {
+  // Check if admin and redirect once
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && user && user.role === 'admin' && !attemptedRedirect) {
+      setAttemptedRedirect(true);
+      console.log('Redirecting admin to admin page');
+      navigate('/admin');
+    }
+  }, [isLoading, isAuthenticated, user, navigate, attemptedRedirect]);
+
+  // Show loading state
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-neutral-100 flex items-center justify-center">
         <Card className="w-full max-w-4xl">

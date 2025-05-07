@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import LoginForm from '@/components/auth/LoginForm';
@@ -6,27 +6,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminPage() {
-  const { user, isAuthenticated, isLoading, checkAuth } = useAuth();
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-
-  // Check authentication status
-  useEffect(() => {
-    const verifyAuth = async () => {
-      setIsCheckingAuth(true);
-      await checkAuth();
-      setIsCheckingAuth(false);
-    };
-    
-    verifyAuth();
-  }, [checkAuth]);
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   // Set document title
   useEffect(() => {
     document.title = 'Admin Dashboard';
   }, []);
 
-  // Show loading state while checking auth
-  if (isLoading || isCheckingAuth) {
+  // Show loading state
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-neutral-100 flex items-center justify-center">
         <Card className="w-full max-w-4xl">
