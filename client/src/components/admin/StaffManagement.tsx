@@ -81,11 +81,13 @@ export default function StaffManagement() {
 
   // Fetch users
   const { 
-    data: users,
+    data: users = [] as User[],
     isLoading,
     error
-  } = useQuery({
+  } = useQuery<User[]>({
     queryKey: ['/api/users'],
+    retry: false,
+    staleTime: 30000,
   });
 
   // Create user mutation
