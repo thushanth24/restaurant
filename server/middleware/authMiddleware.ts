@@ -19,40 +19,53 @@ declare global {
 
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    console.log('AUTH MIDDLEWARE - Headers:', JSON.stringify(req.headers));
+    
     // Get token from authorization header
     const authHeader = req.headers.authorization;
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('AUTH MIDDLEWARE - No Authorization header or not Bearer token');
       return res.status(401).json({ message: 'Unauthorized: No token provided' });
     }
     
     const token = authHeader.split(' ')[1];
+    console.log('AUTH MIDDLEWARE - Token received:', token.substring(0, 10) + '...');
     
-    // Verify token
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: number };
-    
-    // Find user with the decoded ID
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, decoded.id),
-      columns: {
-        id: true,
-        name: true,
-        username: true,
-        role: true,
+    try {
+      // Verify token - this will throw if invalid
+      const decoded = jwt.verify(token, JWT_SECRET) as { id: number };
+      console.log('AUTH MIDDLEWARE - Token verified, user id:', decoded.id);
+      
+      // Find user with the decoded ID
+      const user = await db.query.users.findFirst({
+        where: eq(users.id, decoded.id),
+        columns: {
+          id: true,
+          name: true,
+          username: true,
+          role: true,
+        }
+      });
+      
+      if (!user) {
+        console.log('AUTH MIDDLEWARE - User not found for ID:', decoded.id);
+        return res.status(401).json({ message: 'Unauthorized: User not found' });
       }
-    });
-    
-    if (!user) {
+      
+      console.log('AUTH MIDDLEWARE - User authenticated:', user.username);
+      
+      // Add user to request object
+      req.user = user;
+      
+      next();
+    } catch (jwtError) {
+      console.error('AUTH MIDDLEWARE - JWT verification error:', jwtError);
       return res.status(401).json({ message: 'Unauthorized: Invalid token' });
     }
-    
-    // Add user to request object
-    req.user = user;
-    
-    next();
   } catch (error) {
-    console.error('Authentication error:', error);
-    return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+    console.error('AUTH MIDDLEWARE - General error:', error);
+    return res.status(401).json({ message: 'Unauthorized: Server error' });
   }
 };
 

@@ -44,8 +44,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       setIsLoading(true);
-      console.log('Fetching user data from /api/auth/me');
-      const response = await apiRequest('GET', '/api/auth/me');
+      console.log('Fetching user data from /api/auth/debug-me');
+      const response = await apiRequest('GET', '/api/auth/debug-me');
       const data = await response.json();
       console.log('Auth check response:', data);
       
