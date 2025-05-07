@@ -22,28 +22,23 @@ function LoadingPage() {
   );
 }
 
-// Component to handle redirection based on auth state
+// Component to handle redirection based on auth state - simplified to avoid race conditions
 function HomeRedirect() {
   const { isAuthenticated, isLoading, user } = useAuth();
-  const [redirected, setRedirected] = useState(false);
   const [, setLocation] = useLocation();
   
+  // Using this approach to avoid potential race conditions in the auth flow
   useEffect(() => {
-    // Only perform the redirect once
-    if (redirected) return;
+    if (isLoading) return;
     
-    if (!isLoading) {
-      setRedirected(true);
-      
-      if (isAuthenticated && user) {
-        console.log('HomeRedirect: User authenticated, redirecting to admin dashboard');
-        setLocation('/admin');
-      } else {
-        console.log('HomeRedirect: User not authenticated, redirecting to auth page');
-        setLocation('/auth');
-      }
+    if (isAuthenticated && user) {
+      // Hard redirect for authenticated users
+      window.location.href = '/admin';
+    } else {
+      // Soft redirect for unauthenticated users
+      setLocation('/auth');
     }
-  }, [isAuthenticated, isLoading, redirected, setLocation, user]);
+  }, [isAuthenticated, isLoading, setLocation, user]);
   
   return <LoadingPage />;
 }
@@ -90,10 +85,9 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <WebSocketProvider>
-          <Router />
-          <Toaster />
-        </WebSocketProvider>
+        {/* Temporarily disabled WebSocketProvider to fix stability issues */}
+        <Router />
+        <Toaster />
       </AuthProvider>
     </QueryClientProvider>
   );

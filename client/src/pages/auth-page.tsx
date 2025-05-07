@@ -51,13 +51,11 @@ export default function AuthPage() {
       
       if (isAuthenticated) {
         console.log('Auth page - Redirecting authenticated user to admin dashboard');
-        // Use setTimeout to ensure this happens after render
-        setTimeout(() => {
-          navigate('/admin');
-        }, 10);
+        // Use window.location for a clean redirect with full page refresh
+        window.location.href = '/admin';
       }
     }
-  }, [isAuthenticated, isLoading, navigate, redirectAttempted]);
+  }, [isAuthenticated, isLoading, redirectAttempted]);
 
   // Login form
   const loginForm = useForm<LoginFormValues>({
