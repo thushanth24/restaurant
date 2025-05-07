@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { QRCodeDisplay } from '@/components/ui/QRCodeDisplay';
+import { QRCodeGenerator } from '@/components/ui/qr-code';
 import { Plus, Edit, Trash2, RefreshCw, Eye } from 'lucide-react';
 import { 
   Dialog,
@@ -481,12 +482,12 @@ export default function TableManagement() {
           </DialogHeader>
           <div className="flex flex-col items-center py-4">
             {currentTable && (
-              <div className="bg-white p-4 rounded-lg border">
-                <QRCodeDisplay 
-                  tableNumber={currentTable.number} 
-                  size={200} 
-                />
-              </div>
+              <QRCodeGenerator
+                data={getTableQRUrl(currentTable)}
+                size={200}
+                title={`Table #${currentTable.number} QR Code`}
+                showDownload={true}
+              />
             )}
           </div>
           <DialogFooter>
