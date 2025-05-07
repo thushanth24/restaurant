@@ -20,13 +20,13 @@ export default function WaiterDashboard() {
   const [hasNewOrders, setHasNewOrders] = useState(false);
 
   // Get orders with status filter based on active tab
-  const getStatusForTab = (tab: string) => {
-    const statusMap: Record<string, string> = {
-      'new': 'pending',
-      'in-progress': 'placed',
-      'served': 'served'
+  const getStatusesForTab = (tab: string) => {
+    const statusesMap: Record<string, string[]> = {
+      'new': ['pending'],
+      'in-progress': ['placed', 'preparing'],
+      'served': ['served']
     };
-    return statusMap[tab] || 'pending';
+    return statusesMap[tab] || ['pending'];
   };
 
   const {
@@ -37,9 +37,19 @@ export default function WaiterDashboard() {
   } = useQuery({
     queryKey: ['/api/orders', activeTab],
     queryFn: async ({ queryKey }) => {
-      const status = getStatusForTab(queryKey[1] as string);
-      const response = await apiRequest('GET', `/api/orders?status=${status}`);
-      return response.json();
+      const statuses = getStatusesForTab(queryKey[1] as string);
+      const statusParams = statuses.map(s => `status=${s}`).join('&');
+      const response = await apiRequest('GET', `/api/orders?${statusParams}`);
+      
+      const data = await response.json();
+      
+      // In case the API doesn't support multiple status params,
+      // let's filter the results client-side as well
+      if (Array.isArray(data)) {
+        return data.filter((order: any) => statuses.includes(order.status));
+      }
+      
+      return data;
     },
   });
 

@@ -10,6 +10,7 @@ export const getAllOrders = async (req: Request, res: Response) => {
   try {
     const { status, tableId } = req.query;
     
+    // Default query with no filters
     let query = db.query.orders.findMany({
       with: {
         table: true,
@@ -24,60 +25,148 @@ export const getAllOrders = async (req: Request, res: Response) => {
       orderBy: (orders, { desc }) => [desc(orders.createdAt)],
     });
     
-    // Apply filters if provided
+    // Handle multiple status parameters
     if (status) {
-      query = db.query.orders.findMany({
-        where: eq(orders.status, status as string),
-        with: {
-          table: true,
-          orderItems: {
-            with: {
-              menuItem: true
-            }
+      // Handle array of statuses (multiple status parameters)
+      if (Array.isArray(status) && status.length > 0) {
+        query = db.query.orders.findMany({
+          where: inArray(orders.status, status as string[]),
+          with: {
+            table: true,
+            orderItems: {
+              with: {
+                menuItem: true
+              }
+            },
+            server: true,
+            cashier: true
           },
-          server: true,
-          cashier: true
-        },
-        orderBy: (orders, { desc }) => [desc(orders.createdAt)],
-      });
+          orderBy: (orders, { desc }) => [desc(orders.createdAt)],
+        });
+      } 
+      // Handle comma-separated status string or single status
+      else if (typeof status === 'string') {
+        // Check if it's a comma-separated list
+        if (status.includes(',')) {
+          const statusArray = status.split(',');
+          query = db.query.orders.findMany({
+            where: inArray(orders.status, statusArray),
+            with: {
+              table: true,
+              orderItems: {
+                with: {
+                  menuItem: true
+                }
+              },
+              server: true,
+              cashier: true
+            },
+            orderBy: (orders, { desc }) => [desc(orders.createdAt)],
+          });
+        } else {
+          // Single status
+          query = db.query.orders.findMany({
+            where: eq(orders.status, status),
+            with: {
+              table: true,
+              orderItems: {
+                with: {
+                  menuItem: true
+                }
+              },
+              server: true,
+              cashier: true
+            },
+            orderBy: (orders, { desc }) => [desc(orders.createdAt)],
+          });
+        }
+      }
     }
     
+    // Apply table filter if provided
     if (tableId && !isNaN(parseInt(tableId as string))) {
-      query = db.query.orders.findMany({
-        where: eq(orders.tableId, parseInt(tableId as string)),
-        with: {
-          table: true,
-          orderItems: {
+      const tableIdNum = parseInt(tableId as string);
+      
+      // If status filter is also applied, combine the filters
+      if (status) {
+        // Handle array of statuses
+        if (Array.isArray(status) && status.length > 0) {
+          query = db.query.orders.findMany({
+            where: and(
+              inArray(orders.status, status as string[]),
+              eq(orders.tableId, tableIdNum)
+            ),
             with: {
-              menuItem: true
-            }
-          },
-          server: true,
-          cashier: true
-        },
-        orderBy: (orders, { desc }) => [desc(orders.createdAt)],
-      });
-    }
-    
-    // Apply both filters if both provided
-    if (status && tableId && !isNaN(parseInt(tableId as string))) {
-      query = db.query.orders.findMany({
-        where: and(
-          eq(orders.status, status as string),
-          eq(orders.tableId, parseInt(tableId as string))
-        ),
-        with: {
-          table: true,
-          orderItems: {
+              table: true,
+              orderItems: {
+                with: {
+                  menuItem: true
+                }
+              },
+              server: true,
+              cashier: true
+            },
+            orderBy: (orders, { desc }) => [desc(orders.createdAt)],
+          });
+        }
+        // Handle comma-separated status string
+        else if (typeof status === 'string' && status.includes(',')) {
+          const statusArray = status.split(',');
+          query = db.query.orders.findMany({
+            where: and(
+              inArray(orders.status, statusArray),
+              eq(orders.tableId, tableIdNum)
+            ),
             with: {
-              menuItem: true
-            }
+              table: true,
+              orderItems: {
+                with: {
+                  menuItem: true
+                }
+              },
+              server: true,
+              cashier: true
+            },
+            orderBy: (orders, { desc }) => [desc(orders.createdAt)],
+          });
+        }
+        // Handle single status
+        else if (typeof status === 'string') {
+          query = db.query.orders.findMany({
+            where: and(
+              eq(orders.status, status),
+              eq(orders.tableId, tableIdNum)
+            ),
+            with: {
+              table: true,
+              orderItems: {
+                with: {
+                  menuItem: true
+                }
+              },
+              server: true,
+              cashier: true
+            },
+            orderBy: (orders, { desc }) => [desc(orders.createdAt)],
+          });
+        }
+      } else {
+        // Only table filter
+        query = db.query.orders.findMany({
+          where: eq(orders.tableId, tableIdNum),
+          with: {
+            table: true,
+            orderItems: {
+              with: {
+                menuItem: true
+              }
+            },
+            server: true,
+            cashier: true
           },
-          server: true,
-          cashier: true
-        },
-        orderBy: (orders, { desc }) => [desc(orders.createdAt)],
-      });
+          orderBy: (orders, { desc }) => [desc(orders.createdAt)],
+        });
+      }
     }
     
     const allOrders = await query;
