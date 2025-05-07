@@ -2,7 +2,6 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { authenticate, createGuestSession } from "./middleware/authMiddleware";
 import { isAdmin, isWaiter, isCashier, isWaiterOrCashier } from "./middleware/roleMiddleware";
-import { WebSocketServer, WebSocket } from "ws";
 import { websocketManager } from "./utils/websocketManager";
 
 // Import controllers
@@ -15,9 +14,6 @@ import * as userController from "./controllers/userController";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
-  
-  // Initialize WebSocket server
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
   
   // Initialize WebSocket manager
   websocketManager.initialize(httpServer);
