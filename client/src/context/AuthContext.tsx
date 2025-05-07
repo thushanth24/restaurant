@@ -15,7 +15,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (username: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
   checkAuth: () => Promise<boolean>;
 }
 
@@ -104,16 +104,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
+  const logout = async () => {
+    try {
+      // Call the backend logout endpoint
+      await apiRequest('POST', '/api/auth/logout');
+    } catch (error) {
+      console.warn('Error during server logout:', error);
+      // Continue with local logout even if server logout fails
+    } finally {
+      // Always clear local state regardless of server response
+      localStorage.removeItem('token');
+      setUser(null);
 
-    toast({
-      title: 'Logged out',
-      description: 'You have been successfully logged out',
-    });
+      toast({
+        title: 'Logged out',
+        description: 'You have been successfully logged out',
+      });
 
-    navigate('/');
+      navigate('/auth');
+    }
   };
 
   return (

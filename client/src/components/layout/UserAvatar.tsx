@@ -1,6 +1,16 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from '@/context/AuthContext';
+import { LogOut, User as UserIcon, Settings } from 'lucide-react';
 
 interface User {
   id: number;
@@ -15,6 +25,7 @@ interface UserAvatarProps {
 }
 
 export default function UserAvatar({ user, showTooltip = true }: UserAvatarProps) {
+  const { logout } = useAuth();
   const initials = getInitials(user.name);
   
   // Determine background color based on role
@@ -41,28 +52,40 @@ export default function UserAvatar({ user, showTooltip = true }: UserAvatarProps
       <span className="text-sm font-medium">{user.name}</span>
     </div>
   );
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // The user should be redirected automatically after logout
+    } catch (error) {
+      console.error('Failed to logout:', error);
+    }
+  };
   
-  // Wrap in tooltip if tooltip is enabled
-  if (showTooltip) {
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            {avatar}
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{user.name}</p>
-            {user.role && (
-              <p className="text-xs text-neutral-500 capitalize">{user.role}</p>
-            )}
-            {user.username && (
-              <p className="text-xs text-neutral-500">@{user.username}</p>
-            )}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-  }
-  
-  return avatar;
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        {avatar}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="end">
+        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem disabled>
+            <UserIcon className="mr-2 h-4 w-4" />
+            <span>Profile</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled>
+            <Settings className="mr-2 h-4 w-4" />
+            <span>Settings</span>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleLogout}>
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Log out</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 }
