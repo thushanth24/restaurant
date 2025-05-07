@@ -360,7 +360,7 @@ export default function MenuManagement() {
       {totalPages > 1 && (
         <div className="flex justify-between items-center mt-4">
           <div className="text-sm text-neutral-500">
-            Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, menuItems?.length || 0)} of {menuItems?.length || 0} entries
+            Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, menuItems.length)} of {menuItems.length} entries
           </div>
           <div className="pagination">
             <button 
