@@ -3,7 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/context/AuthContext";
-import { WebSocketProvider } from "@/context/WebSocketContext";
+import { NotificationProvider } from "@/context/NotificationContext";
 import NotFound from "@/pages/not-found";
 import CustomerPage from "@/pages/customer";
 import WaiterPage from "@/pages/waiter";
@@ -85,9 +85,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        {/* Temporarily disabled WebSocketProvider to fix stability issues */}
-        <Router />
-        <Toaster />
+        <NotificationProvider>
+          <Router />
+          <Toaster />
+        </NotificationProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

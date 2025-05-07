@@ -69,13 +69,16 @@ export const getQueryFn: <T>(options: {
     return await res.json();
   };
 
+// Configuration for polling-based notifications
+export const POLLING_INTERVAL = 5000; // 5 seconds
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
-      refetchOnWindowFocus: false,
-      staleTime: Infinity,
+      refetchOnWindowFocus: true,
+      staleTime: 60000, // 1 minute
       retry: false,
     },
     mutations: {
