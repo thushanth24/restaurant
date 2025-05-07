@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { db } from '@db';
 import { users } from '@shared/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, or } from 'drizzle-orm';
 import { hashSync } from 'bcryptjs';
 import { UserRole } from '../middleware/roleMiddleware';
 
