@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { db } from '@db';
 import { users } from '@shared/schema';
-import { eq, and, or } from 'drizzle-orm';
+import { eq, and, or, ne } from 'drizzle-orm';
 import { hashSync } from 'bcryptjs';
 import { UserRole } from '../middleware/roleMiddleware';
 
@@ -137,7 +137,7 @@ export const updateUser = async (req: Request, res: Response) => {
             username ? eq(users.username, username) : undefined,
             email ? eq(users.email, email) : undefined
           ),
-          !eq(users.id, parseInt(id))
+          ne(users.id, parseInt(id))
         ),
       });
       
