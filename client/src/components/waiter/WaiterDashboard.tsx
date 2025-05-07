@@ -38,18 +38,35 @@ export default function WaiterDashboard() {
     queryKey: ['/api/orders', activeTab],
     queryFn: async ({ queryKey }) => {
       const statuses = getStatusesForTab(queryKey[1] as string);
-      const statusParams = statuses.map(s => `status=${s}`).join('&');
-      const response = await apiRequest('GET', `/api/orders?${statusParams}`);
+      console.log('Fetching orders with statuses:', statuses);
       
-      const data = await response.json();
-      
-      // In case the API doesn't support multiple status params,
-      // let's filter the results client-side as well
-      if (Array.isArray(data)) {
-        return data.filter((order: any) => statuses.includes(order.status));
+      // For the 'in-progress' tab, we'll make individual API calls for each status
+      // and combine the results to ensure we don't miss any orders
+      if (activeTab === 'in-progress') {
+        try {
+          // First fetch 'placed' orders
+          const placedResponse = await apiRequest('GET', `/api/orders?status=placed`);
+          const placedData = await placedResponse.json();
+          
+          // Then fetch 'preparing' orders
+          const preparingResponse = await apiRequest('GET', `/api/orders?status=preparing`);
+          const preparingData = await preparingResponse.json();
+          
+          console.log('Placed orders:', placedData.length);
+          console.log('Preparing orders:', preparingData.length);
+          
+          // Combine the results
+          return [...placedData, ...preparingData];
+        } catch (error) {
+          console.error('Error fetching orders for multiple statuses:', error);
+          throw error;
+        }
+      } else {
+        // For single status tabs, use the original approach
+        const status = statuses[0]; // Just use the first status
+        const response = await apiRequest('GET', `/api/orders?status=${status}`);
+        return await response.json();
       }
-      
-      return data;
     },
   });
 
